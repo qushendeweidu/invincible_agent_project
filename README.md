@@ -101,7 +101,6 @@ Data/Infra:
 - Spring Boot 3.5.10
 - Spring AI 1.1.2
 - Spring AI Alibaba Agent Framework 1.1.2.0
-- spring-ai-agent-utils 0.7.0
 - MCP Client/Server (WebFlux)
 - Sa-Token 1.44.0
 - MyBatis-Plus + JPA
