@@ -1,4 +1,4 @@
-# 🤖 Laodeng AI Agent
+﻿# 🤖 Laodeng AI Agent
 
 基于 `Spring Boot 3.5 + Spring AI + Alibaba Agent Framework` 的多智能体协作平台，支持：
 
@@ -85,7 +85,7 @@ Client
   -> Optional TTS (DashScope) -> MinIO URL
 
 Data/Infra:
-- MySQL (业务配置)
+- MyS:L (业务配置)
 - MongoDB (长时对话记忆)
 - Redis/Redisson (会话/短时记忆与图状态)
 - Elasticsearch (向量检索)
@@ -108,7 +108,7 @@ Data/Infra:
 - MongoDB
 - Elasticsearch Vector Store
 - MinIO
-- InfluxDB
+- InfluxDB?
 
 ---
 
