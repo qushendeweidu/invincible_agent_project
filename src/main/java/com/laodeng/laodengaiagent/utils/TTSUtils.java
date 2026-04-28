@@ -133,39 +133,17 @@ public class TTSUtils {
      * @return SSML格式文本
      */
     private String wrapWithSSML(String text) {
-        // 如果文本中没有任何语音标签，直接用默认参数包装
-        if (!VOICE_TAG_PATTERN.matcher(text).find()) {
-            String escaped = escapeXml(text);
-            return "<speak rate=\"" + DEFAULT_RATE + "\" pitch=\"" + DEFAULT_PITCH + "\" volume=\"" + DEFAULT_VOLUME + "\">" + escaped + "</speak>";
-        }
-
-        // 按语音标签拆分文本为多个片段，每个片段有独立的语速/语气参数
-        StringBuilder ssml = new StringBuilder();
-        Matcher matcher = VOICE_TAG_PATTERN.matcher(text);
-
         String currentRate = DEFAULT_RATE;
         String currentPitch = DEFAULT_PITCH;
-        int lastEnd = 0;
 
-        while (matcher.find()) {
-            // 对于标签之前的文本的处理逻辑是给一个默认参数保持默认的音高声音和语速
-            String before = text.substring(lastEnd, matcher.start());
-            if (!before.trim().isEmpty()) {
-                String escaped = escapeXml(before.trim());
-                ssml.append("<speak rate=\"").append(currentRate)
-                    .append("\" pitch=\"").append(currentPitch)
-                    .append("\" volume=\"").append(DEFAULT_VOLUME)
-                    .append("\">").append(escaped).append("</speak>");
-            }
+        Matcher matcher = VOICE_TAG_PATTERN.matcher(text);
+        // 查找第一个匹配的标签来决定整个回复的风格
+        if (matcher.find()) {
+            String tagType = matcher.group(1);
+            String tagValue = matcher.group(2);
 
-            // 修改语速和音高的默认参数
-            String tagType = matcher.group(1); //匹配的第一个是语速
-            String tagValue = matcher.group(2); //第二个被匹配的是音高
             if ("语速".equals(tagType)) {
-                String mappedRate = SPEED_MAP.get(tagValue);
-                if (mappedRate != null) {
-                    currentRate = mappedRate;
-                }
+                currentRate = SPEED_MAP.getOrDefault(tagValue, DEFAULT_RATE);
             } else if ("语气".equals(tagType)) {
                 String[] toneParams = TONE_MAP.get(tagValue);
                 if (toneParams != null) {
@@ -173,28 +151,14 @@ public class TTSUtils {
                     currentPitch = toneParams[1];
                 }
             }
-
-            lastEnd = matcher.end();
         }
 
-        // 处理最后一个标签之后的剩余文本
-        if (lastEnd < text.length()) {
-            String remaining = text.substring(lastEnd);
-            if (!remaining.trim().isEmpty()) {
-                String escaped = escapeXml(remaining.trim());
-                ssml.append("<speak rate=\"").append(currentRate)
-                    .append("\" pitch=\"").append(currentPitch)
-                    .append("\" volume=\"").append(DEFAULT_VOLUME)
-                    .append("\">").append(escaped).append("</speak>");
-            }
-        }
+        // 移除所有标签，只保留纯文本
+        String plainText = stripVoiceTags(text);
+        String escapedText = escapeXml(plainText);
 
-        String result = ssml.toString();
-        // 如果解析后为空（标签被清除但没有实际文本），返回默认
-        if (result.isEmpty()) {
-            return "<speak rate=\"" + DEFAULT_RATE + "\" pitch=\"" + DEFAULT_PITCH + "\" volume=\"" + DEFAULT_VOLUME + "\">" + escapeXml(text.replaceAll(VOICE_TAG_PATTERN.pattern(), "").trim()) + "</speak>";
-        }
-        return result;
+        // 生成唯一的 <speak> 标签
+        return "<speak rate=\"" + currentRate + "\" pitch=\"" + currentPitch + "\" volume=\"" + DEFAULT_VOLUME + "\">" + escapedText + "</speak>";
     }
 
     /**
