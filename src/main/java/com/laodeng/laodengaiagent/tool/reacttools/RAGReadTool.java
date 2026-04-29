@@ -3,7 +3,6 @@ package com.laodeng.laodengaiagent.tool.reacttools;
 import com.laodeng.laodengaiagent.annotition.ToolMetadata;
 import com.laodeng.laodengaiagent.config.McpToolsConfig;
 import com.laodeng.laodengaiagent.register.DynamicChatModelRegistry;
-import com.laodeng.laodengaiagent.utils.MyTransformerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
@@ -60,7 +59,9 @@ public class RAGReadTool implements BiFunction<McpToolsConfig.RAGRequest, ToolCo
                 .system("你是知识库检索助手。请严格根据检索到的文档内容回答用户问题。" +
                         "如果检索到的内容能回答问题，请基于文档内容给出准确、简洁的回答，并标注来源片段。" +
                         "如果检索到的内容与问题无关或无法回答，请直接回复：'知识库中未找到与该问题相关的内容。'" +
-                        "禁止编造文档中不存在的信息。必须使用中文回答。")
+                        "禁止编造文档中不存在的信息。必须使用中文回答。" +
+                        "严禁字符连打与词语循环复读（如‘要要要要要’‘想你想你想你’）。" +
+                        "严禁省略号滥用：每条回复中‘……’最多 1 处，禁止连续堆叠（如‘…………’）。")
                 .user(userQuery)
                 // 使用 M6 版本标准的 Key 常量
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))
