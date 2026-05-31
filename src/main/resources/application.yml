@@ -1,0 +1,166 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  servlet:
+    multipart:
+      max-file-size: 800MB
+      max-request-size: 800MB
+  jpa:
+    hibernate:
+      ddl-auto: none                       # 不自动创建/更新表结构（配合 MyBatis-Plus 使用）
+    show-sql: false                        # 是否显示 SQL 日志
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect  # 明确指定数据库方言
+        format_sql: false                  # 是否格式化 SQL
+  elasticsearch:
+    uris: http://localhost:19200
+    username: elastic
+    password: ${ELASTICSEARCH_PASSWORD}
+  threads:
+    virtual:
+      enabled: true
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: laodeng_ai
+      username: "root"
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+
+    redis:
+      # 如果你在本地运行项目连接 Docker，用 localhost 或 127.0.0.1
+      host: localhost
+      port: 3089
+      database: 0      # 默认使用 0 号库
+      lettuce:
+        pool:
+          max-active: 8   # 连接池最大连接数
+          max-idle: 8     # 最大空闲连接
+          min-idle: 0     # 最小空闲连接
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:4336/invincible_ai?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: ${MYSQL_PASSWORD}
+    # Hikari 连接池详细配置
+    hikari:
+      # 连接池名称，方便在日志里排查问题
+      pool-name: LaodengAiAgentHikariPool
+      # 最大连接数（推荐配置：CPU 核心数 * 2 + 1，对于你的 i5-14600KF，设为 20-30 足够）
+      maximum-pool-size: 20
+      # 最小空闲连接数
+      minimum-idle: 5
+      # 等待连接池分配连接的最大时长（毫秒），超过 30 秒还没拿到连接就报错
+      connection-timeout: 30000
+      # 一个连接在池里闲置的最大时长
+      idle-timeout: 600000
+      # 一个连接的最长生命周期（建议比 MySQL 的 wait_timeout 短 1 分钟，防止“连接断开”异常）
+      max-lifetime: 1800000
+      # 测试连接是否有效的 SQL
+      connection-test-query: SELECT 1
+  application:
+    name: laodeng-ai-agent
+  ai:
+    chat:
+      memory:
+        repository:
+          mongo:
+            create-indices: true  # 启动时自动创建索引（提升查询性能）
+            ttl: 0                # 0 = 永久存储，适合长时记忆；设为秒数则自动过期
+    mcp:
+      client:
+        enabled: true
+        initialized: false          # 跳过启动时初始化，改为懒加载
+        name: laodeng-mcp-client
+        version: 1.0.0
+        type: ASYNC
+        request-timeout: 1800s   # MCP 工具调用超时：30 分钟，与 ChatModel 读超时对齐
+        stdio:
+          servers-configuration: classpath:mcp/mcp-servers.json
+      # 如果你同时有 MCP Server，需要配置
+      server:
+        name: laodeng-mcp-server
+        version: 1.0.0
+    model:
+      embedding: 就不告诉你
+    openai:
+      base-url: http://localhost:11434/v1
+      api-key: placeholder        # 随便填，只是让自动配置通过校验
+      chat:
+        options:
+          model: qwen3-vl:latest
+        completions-path: /chat/completions
+# mybatis-plus配置文件
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true   # 下划线自动转驼峰，匹配实体字段
+  global-config:
+    db-config:
+      logic-delete-field: enabled        # 可选：用 enabled=0 做逻辑删除
+      logic-delete-value: 0
+      logic-not-delete-value: 1
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.laodeng.laodengaiagent.controller
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+server:
+  tomcat:
+    connection-timeout: 300000
+  port: 8888
+  servlet:
+    context-path: /api #访问路径前缀配置
+
+logging:
+  level:
+    # 隐藏 Netty 超时警告
+    io.netty.handler.timeout.ReadTimeoutException: OFF
+    reactor.netty.http.client.HttpClientConnect: OFF
+    # 隐藏 Spring AI 重试警告
+    org.springframework.ai.retry.RetryUtils: OFF
+sa-token:
+  # token 名称（同时也是 cookie 名称）
+  token-name: token
+  # token 有效期（单位: 秒），-1 代表永久
+  timeout: 2592000
+  # 是否允许同一账号并发登录
+  is-concurrent: true
+  # 同一账号最大登录数量，-1 不限制
+  max-login-count: -1
+  # 是否输出操作日志
+  is-log: true
+  # 登录有效时间（单位: 秒），-1 代表永久
+  active-timeout: -1
+minio:
+  endpoint: http://localhost:9000
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: document
+influxdb:
+  url: http://localhost:8086
+  token: ${INFLUXDB_TOKEN}
+  org: laodeng
+  bucket: ai-agent-metrics
+
+
+
+
+
+
+
+
